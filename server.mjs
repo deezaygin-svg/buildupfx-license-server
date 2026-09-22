@@ -118,9 +118,9 @@ function isAdmin(req) {
 }
 
 // Checks a license key that isn't in our local DB against Gumroad's own license verification API
-// (Gumroad generates + emails the key itself at checkout when "Generate a unique license key per
-// sale" is enabled on the product - no admin/issue call or email sending needed on our side).
-// Returns 'valid', 'revoked' (refunded/chargebacked/subscription ended), or 'invalid'.
+// (Gumroad generates + emails the key itself at checkout once a "License key" block is added to
+// the product's content page - no admin/issue call or email sending needed on our side).
+// Returns 'valid', 'revoked' (refunded/disputed/chargebacked/subscription ended), or 'invalid'.
 async function checkGumroadLicense(licenseKey) {
     if (!GUMROAD_PRODUCT_ID) return 'invalid';
 
@@ -139,7 +139,7 @@ async function checkGumroadLicense(licenseKey) {
         if (!data.success) return 'invalid';
 
         const p = data.purchase || {};
-        if (p.refunded || p.chargebacked || p.subscription_cancelled_at || p.subscription_failed_at)
+        if (p.refunded || p.disputed || p.chargebacked || p.subscription_cancelled_at || p.subscription_failed_at)
             return 'revoked';
 
         return { status: 'valid', email: String(p.email || '') };
